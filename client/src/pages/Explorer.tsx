@@ -12,6 +12,7 @@ import {
   CANONICAL_ANGLES, StructureTag,
 } from "@/lib/scanEngine";
 import { PatternConfig } from "@/lib/patternEngine";
+import { allRulesets } from "@/lib/core/rulesets";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -284,7 +285,7 @@ function StructurePanel({
 // ── Main Explorer component ───────────────────────────────────────────────────
 
 interface ExplorerProps {
-  onLoadPattern: (config: Partial<PatternConfig>) => void;
+  onLoadPattern: (config: Partial<PatternConfig> & { rulesetId?: string }) => void;
 }
 
 const ALL_ANGLES = CANONICAL_ANGLES;
@@ -376,6 +377,7 @@ export default function Explorer({ onLoadPattern }: ExplorerProps) {
     else if (e.key === "ArrowUp") { next = Math.max(selectedIdx - cols, 0); e.preventDefault(); }
     else if (e.key === "Enter" && selected) {
       onLoadPattern({
+        rulesetId: selected.rulesetId,
         n: selected.n,
         factorAngle: selected.angle,
         nonFactorAngle: selected.angle,
@@ -391,6 +393,7 @@ export default function Explorer({ onLoadPattern }: ExplorerProps) {
   const handleLoadSelected = useCallback(() => {
     if (!selected) return;
     onLoadPattern({
+      rulesetId: selected.rulesetId,
       n: selected.n,
       factorAngle: selected.angle,
       nonFactorAngle: selected.angle,
@@ -402,6 +405,18 @@ export default function Explorer({ onLoadPattern }: ExplorerProps) {
     <div className="flex flex-col h-full overflow-hidden" onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Top bar */}
       <div className="flex items-center gap-4 px-5 py-3 border-b border-border bg-card/50 flex-wrap">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-muted-foreground font-mono">Rule</span>
+          <select
+            value={scanConfig.rulesetId}
+            onChange={(e) => setScanConfig((c) => ({ ...c, rulesetId: e.target.value }))}
+            className="font-mono text-xs bg-input border border-border rounded px-2 py-1 text-foreground max-w-44"
+          >
+            {allRulesets().map((r) => (
+              <option key={r.id} value={r.id}>{r.label}</option>
+            ))}
+          </select>
+        </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="text-muted-foreground font-mono">N</span>
           <input

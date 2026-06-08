@@ -42,9 +42,9 @@ function ExplorerMode() {
   return (
     <Explorer
       onLoadPattern={(patch) => {
-        // Explorer scans the symmetric classic rule (angleA === angleB).
+        // Explorer scans a chosen rule symmetrically (angleA === angleB).
         loadIntoCanvas({
-          rulesetId: "classic-factor",
+          rulesetId: patch.rulesetId ?? "classic-factor",
           n: patch.n,
           angleA: patch.factorAngle,
           angleB: patch.nonFactorAngle,

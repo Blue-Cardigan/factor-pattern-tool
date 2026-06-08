@@ -9,10 +9,13 @@
  * reported via the onProgress callback. An AbortSignal cancels mid-flight.
  */
 
-import { scanSingle, CANONICAL_ANGLES } from "../scanEngine";
+import { scanSingleRule, CANONICAL_ANGLES } from "../scanEngine";
+import { DEFAULT_RULESET_ID } from "../core/rulesets";
 import { scoreCandidate, type SearchTarget, type ScoredCandidate } from "./scoring";
 
 export interface SearchSpace {
+  /** Ruleset to search over (defaults to the classic factor rule). */
+  rulesetId: string;
   nMin: number;
   nMax: number;
   /** Angle set to test. Defaults to CANONICAL_ANGLES; "fine" adds more. */
@@ -20,6 +23,7 @@ export interface SearchSpace {
 }
 
 export const DEFAULT_SPACE: SearchSpace = {
+  rulesetId: DEFAULT_RULESET_ID,
   nMin: 4,
   nMax: 120,
   angles: CANONICAL_ANGLES,
@@ -67,6 +71,7 @@ export async function runSearch(
   const topK = opts.topK ?? 48;
   const chunkSize = opts.chunkSize ?? 200;
 
+  const rulesetId = space.rulesetId ?? DEFAULT_RULESET_ID;
   const ns: number[] = [];
   for (let n = space.nMin; n <= space.nMax; n++) ns.push(n);
   const total = ns.length * space.angles.length;
@@ -81,7 +86,7 @@ export async function runSearch(
       if (opts.signal?.aborted) {
         throw new DOMException("Search aborted", "AbortError");
       }
-      const result = scanSingle(n, angle);
+      const result = scanSingleRule(rulesetId, n, angle);
       const score = scoreCandidate(result, target);
       scanned++;
       if (score >= 0) {

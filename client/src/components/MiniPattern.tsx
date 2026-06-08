@@ -5,8 +5,8 @@
  */
 
 import React, { useMemo } from "react";
-import { generatePattern, PatternConfig, cycleHue, hslString } from "@/lib/patternEngine";
-import { ScanResult } from "@/lib/scanEngine";
+import { cycleHue, hslString } from "@/lib/patternEngine";
+import { ScanResult, renderScanPattern } from "@/lib/scanEngine";
 
 interface MiniPatternProps {
   result: ScanResult;
@@ -23,17 +23,16 @@ export default function MiniPattern({
   selected = false,
   colorMode = "hue-cycle",
 }: MiniPatternProps) {
-  const patternResult = useMemo(() => {
-    const config: PatternConfig = {
-      n: result.n,
-      factorAngle: result.angle,
-      nonFactorAngle: result.angle,
-      stepLength: 10,
-      repetitions: Math.min((result.cyclesUntilClosed ?? 4) + 1, 12),
-      factorTurnsRight: true,
-    };
-    return generatePattern(config);
-  }, [result.n, result.angle, result.cyclesUntilClosed]);
+  const patternResult = useMemo(
+    () =>
+      renderScanPattern(
+        result.rulesetId,
+        result.n,
+        result.angle,
+        Math.min((result.cyclesUntilClosed ?? 4) + 1, 12)
+      ),
+    [result.rulesetId, result.n, result.angle, result.cyclesUntilClosed]
+  );
 
   const { viewBox, transform } = useMemo(() => {
     const { minX, maxX, minY, maxY } = patternResult.bounds;

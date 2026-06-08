@@ -7,11 +7,15 @@
  */
 
 import { useMemo } from "react";
-import { generatePattern, cycleHue, hslString } from "@/lib/patternEngine";
+import { cycleHue, hslString } from "@/lib/patternEngine";
+import { renderScanPattern } from "@/lib/scanEngine";
+import { DEFAULT_RULESET_ID } from "@/lib/core/rulesets";
 
 interface ThumbnailProps {
   n: number;
   angle: number;
+  /** Which ruleset to render (defaults to the classic factor rule). */
+  rulesetId?: string;
   /** Display size in px (square). */
   size?: number;
   className?: string;
@@ -19,16 +23,15 @@ interface ThumbnailProps {
 
 const PREVIEW_REPS = 12;
 
-export default function Thumbnail({ n, angle, size = 132, className }: ThumbnailProps) {
+export default function Thumbnail({
+  n,
+  angle,
+  rulesetId = DEFAULT_RULESET_ID,
+  size = 132,
+  className,
+}: ThumbnailProps) {
   const { path, viewBox, cycles } = useMemo(() => {
-    const result = generatePattern({
-      n,
-      factorAngle: angle,
-      nonFactorAngle: angle,
-      stepLength: 10,
-      repetitions: PREVIEW_REPS,
-      factorTurnsRight: true,
-    });
+    const result = renderScanPattern(rulesetId, n, angle, PREVIEW_REPS);
     const { minX, maxX, minY, maxY } = result.bounds;
     const w = Math.max(maxX - minX, 1);
     const h = Math.max(maxY - minY, 1);
@@ -50,7 +53,7 @@ export default function Thumbnail({ n, angle, size = 132, className }: Thumbnail
       color: hslString(cycleHue(cycle, Math.max(totalCycles, 1)), 75, 62),
     }));
     return { path: paths, viewBox: vb, cycles: totalCycles };
-  }, [n, angle]);
+  }, [rulesetId, n, angle]);
 
   return (
     <svg

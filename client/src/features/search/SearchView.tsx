@@ -25,6 +25,7 @@ import {
 import { Search, Sparkles, Loader2, X, ArrowRight } from "lucide-react";
 
 import { useModeContext } from "@/features/ModeContext";
+import { allRulesets } from "@/lib/core/rulesets";
 import type { StructureTag } from "@/lib/scanEngine";
 import {
   DEFAULT_TARGET,
@@ -83,6 +84,8 @@ export default function SearchView() {
   const { loadIntoCanvas } = useModeContext();
 
   const [target, setTarget] = useState<SearchTarget>(DEFAULT_TARGET);
+  const [rulesetId, setRulesetId] = useState<string>(DEFAULT_SPACE.rulesetId);
+  const rulesets = useMemo(() => allRulesets(), []);
   const [fineAngles, setFineAngles] = useState(false);
   const [nRange, setNRange] = useState<[number, number]>([
     DEFAULT_SPACE.nMin,
@@ -122,6 +125,7 @@ export default function SearchView() {
       const res = await runSearch(
         target,
         {
+          rulesetId,
           nMin: nRange[0],
           nMax: nRange[1],
           angles: fineAngles ? FINE_ANGLES : CANONICAL_ANGLES,
@@ -145,7 +149,7 @@ export default function SearchView() {
         abortRef.current = null;
       }
     }
-  }, [target, nRange, fineAngles]);
+  }, [target, rulesetId, nRange, fineAngles]);
 
   const handleCancel = () => {
     abortRef.current?.abort();
@@ -186,6 +190,24 @@ export default function SearchView() {
         </div>
 
         <div className="px-5 py-4 flex-1">
+          {/* Ruleset */}
+          <SectionLabel>Ruleset</SectionLabel>
+          <Select value={rulesetId} onValueChange={setRulesetId}>
+            <SelectTrigger className="w-full font-mono text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {rulesets.map((r) => (
+                <SelectItem key={r.id} value={r.id} className="font-mono text-sm">
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[10px] text-muted-foreground font-mono mt-1.5">
+            Search any rule's (N × angle) space.
+          </p>
+
           {/* Presets */}
           <SectionLabel>Quick targets</SectionLabel>
           <div className="grid grid-cols-2 gap-2 mb-1">
@@ -412,10 +434,10 @@ export default function SearchView() {
           <div className="p-6 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
             {results.map(({ result, score }) => (
               <button
-                key={`${result.n}-${result.angle}`}
+                key={`${result.rulesetId}-${result.n}-${result.angle}`}
                 onClick={() =>
                   loadIntoCanvas({
-                    rulesetId: "classic-factor",
+                    rulesetId: result.rulesetId,
                     n: result.n,
                     angleA: result.angle,
                     angleB: result.angle,
@@ -428,7 +450,7 @@ export default function SearchView() {
                 title={`N=${result.n} · ${result.angle}° · score ${Math.round(score)}`}
               >
                 <div className="aspect-square w-full grid place-items-center bg-black/40 p-2">
-                  <Thumbnail n={result.n} angle={result.angle} size={130} />
+                  <Thumbnail rulesetId={result.rulesetId} n={result.n} angle={result.angle} size={130} />
                 </div>
                 <div className="px-2.5 py-2 border-t border-border">
                   <div className="flex items-center justify-between">
