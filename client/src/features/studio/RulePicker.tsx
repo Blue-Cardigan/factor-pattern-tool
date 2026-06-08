@@ -14,7 +14,7 @@ import * as React from "react";
 import { allRulesets, getRuleset } from "@/lib/core/rulesets";
 import { defaultParams } from "@/lib/core/types";
 import type { Knob, Ruleset, RulesetParams } from "@/lib/core/types";
-import { compileExpr, DEFAULT_FORMULA } from "@/lib/core/formula";
+import { compileExpr, DEFAULT_FORMULA, FORMULA_PRESETS, type FormulaPreset } from "@/lib/core/formula";
 
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -217,6 +217,9 @@ function RulePicker({ rulesetId, params, onChange }: RulePickerProps) {
         <FormulaEditor
           value={typeof params.expr === "string" ? params.expr : DEFAULT_FORMULA}
           onChange={(expr) => patch({ expr })}
+          onPick={(p) =>
+            patch(p.scale !== undefined ? { expr: p.expr, exprScale: p.scale } : { expr: p.expr })
+          }
         />
       )}
     </div>
@@ -295,11 +298,25 @@ function ToggleKnob({
 function FormulaEditor({
   value,
   onChange,
+  onPick,
 }: {
   value: string;
   onChange: (v: string) => void;
+  onPick: (preset: FormulaPreset) => void;
 }) {
   const status = React.useMemo(() => compileExpr(value), [value]);
+
+  // Group presets by their `group`, preserving first-seen order.
+  const groups = React.useMemo(() => {
+    const map = new Map<string, FormulaPreset[]>();
+    for (const p of FORMULA_PRESETS) {
+      const arr = map.get(p.group) ?? [];
+      arr.push(p);
+      map.set(p.group, arr);
+    }
+    return Array.from(map.entries());
+  }, []);
+
   return (
     <div className="flex flex-col gap-2 border-t border-border pt-4">
       <div className="flex items-center justify-between">
@@ -326,6 +343,39 @@ function FormulaEditor({
       {!status.ok && status.error && (
         <p className="font-mono text-xs text-destructive">{status.error}</p>
       )}
+
+      {/* Preset library */}
+      <div className="mt-1 flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+        <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Preset formulae
+        </div>
+        {groups.map(([group, presets]) => (
+          <div key={group} className="flex flex-col gap-1">
+            <div className="text-[10px] text-muted-foreground/70">{group}</div>
+            <div className="flex flex-wrap gap-1">
+              {presets.map((p) => {
+                const active = p.expr === value;
+                return (
+                  <button
+                    key={p.name}
+                    type="button"
+                    title={p.expr}
+                    onClick={() => onPick(p)}
+                    className={`font-mono text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      active
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <p className="text-xs leading-relaxed text-muted-foreground">
         Vars: i, n. Funcs: gcd, lcm, isprime, omega, Omega, tau, sigma, phi, mu,
         mod, abs, floor, min, max, sqrt, sin, cos. Operators + − * / % ^, comparisons,

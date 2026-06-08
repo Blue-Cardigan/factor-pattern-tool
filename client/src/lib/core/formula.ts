@@ -401,6 +401,77 @@ export function compile(expr: string): (i: number, n: number) => number {
 
 export const DEFAULT_FORMULA = "isprime(i) ? 144 : -gcd(i,n)*12";
 
+/* ----------------------------- preset library ----------------------------- */
+
+export interface FormulaPreset {
+  name: string;
+  expr: string;
+  group: string;
+  /** Optional yaw-scale that pairs well with this expression. */
+  scale?: number;
+}
+
+/**
+ * An extensive, curated library of yaw(i) expressions. Each uses only the
+ * supported vars/functions and is picked to produce a visually distinct walk.
+ * Grouped for the picker; `scale` (when set) is applied to exprScale on use.
+ */
+export const FORMULA_PRESETS: FormulaPreset[] = [
+  // ── Primes ──────────────────────────────────────────────────────────────
+  { name: "Prime Spikes", group: "Primes", expr: "isprime(i) ? 144 : -gcd(i,n)*12" },
+  { name: "Prime Pulse", group: "Primes", expr: "isprime(i) ? 90 : -30" },
+  { name: "Prime Ladder", group: "Primes", expr: "isprime(i) ? 60 : 12" },
+  { name: "Twin Primes", group: "Primes", expr: "isprime(i) && isprime(i+2) ? 150 : -24" },
+  { name: "Prime Gap", group: "Primes", expr: "isprime(i) ? 180 - i*4 : 20" },
+  { name: "Prime Power", group: "Primes", expr: "Omega(i) == 1 ? 120 : -40" },
+
+  // ── Divisors ────────────────────────────────────────────────────────────
+  { name: "Divisor Fan", group: "Divisors", expr: "tau(i) * 30" },
+  { name: "Divisor Saw", group: "Divisors", expr: "(tau(i) - 2) * 45" },
+  { name: "Square Detector", group: "Divisors", expr: "mod(tau(i),2) == 1 ? 150 : -30" },
+  { name: "Abundant Turn", group: "Divisors", expr: "sigma(i) > 2*i ? 120 : -60" },
+  { name: "Perfect Mark", group: "Divisors", expr: "sigma(i) == 2*i ? 180 : tau(i)*15" },
+  { name: "Sigma Climb", group: "Divisors", expr: "mod(sigma(i), n) * 6 - 90", scale: 1 },
+
+  // ── Totient & Möbius ─────────────────────────────────────────────────────
+  { name: "Totient Wave", group: "Totient & Möbius", expr: "phi(i) * 6" },
+  { name: "Totient Ratio", group: "Totient & Möbius", expr: "(phi(i) / i) * 360" },
+  { name: "Coprime Lean", group: "Totient & Möbius", expr: "gcd(i,n) == 1 ? 100 : -80" },
+  { name: "Möbius Flip", group: "Totient & Möbius", expr: "mu(i) * 120" },
+  { name: "Squarefree", group: "Totient & Möbius", expr: "mu(i) != 0 ? 96 : -48" },
+  { name: "Möbius Mod", group: "Totient & Möbius", expr: "mu(i) * 90 + mod(i,3) * 24" },
+
+  // ── GCD ──────────────────────────────────────────────────────────────────
+  { name: "GCD Bloom", group: "GCD", expr: "gcd(i,n) * 40" },
+  { name: "GCD Inverse", group: "GCD", expr: "180 / (gcd(i,n) + 1)" },
+  { name: "Shared Factor", group: "GCD", expr: "gcd(i,n) > 1 ? 72 : -72" },
+  { name: "LCM Drift", group: "GCD", expr: "mod(lcm(i, n), 360)" },
+
+  // ── Modular ──────────────────────────────────────────────────────────────
+  { name: "Residue Ramp", group: "Modular", expr: "mod(i, 5) * 30" },
+  { name: "Clock", group: "Modular", expr: "mod(i, 12) * 30" },
+  { name: "Quadratic Residue", group: "Modular", expr: "mod(i*i, n) * 4" },
+  { name: "Heptagon Beat", group: "Modular", expr: "mod(i, 7) * 51" },
+  { name: "Folded Mod", group: "Modular", expr: "mod(i*i + i, n) * 6 - 90" },
+
+  // ── Trig & Spirals ───────────────────────────────────────────────────────
+  { name: "Sine Breath", group: "Trig & Spirals", expr: "sin(i / 5) * 60" },
+  { name: "Golden Spiral", group: "Trig & Spirals", expr: "i * 137.5" },
+  { name: "Slow Spiral", group: "Trig & Spirals", expr: "i * 7" },
+  { name: "Cosine Lobes", group: "Trig & Spirals", expr: "cos(i / 3) * 90" },
+  { name: "Wobble", group: "Trig & Spirals", expr: "sin(i) * 40 + cos(i / 2) * 40" },
+  { name: "Damped Swing", group: "Trig & Spirals", expr: "sin(i / 4) * (90 - i)" },
+  { name: "Square Wave", group: "Trig & Spirals", expr: "sign(sin(i / 3)) * 90" },
+
+  // ── Mixed ────────────────────────────────────────────────────────────────
+  { name: "Omega Ladder", group: "Mixed", expr: "omega(i) * 60 - 30" },
+  { name: "Big Omega", group: "Mixed", expr: "Omega(i) * 45" },
+  { name: "Log Drift", group: "Mixed", expr: "log(i) * 50" },
+  { name: "Sqrt Curl", group: "Mixed", expr: "sqrt(i) * 20" },
+  { name: "Parity Hook", group: "Mixed", expr: "mod(i,2) == 0 ? 60 : 175" },
+  { name: "Prime × Mod", group: "Mixed", expr: "isprime(i) ? mod(i,n)*8 : -mod(i,7)*10" },
+];
+
 /* ----------------------------- ruleset ----------------------------- */
 
 /**
