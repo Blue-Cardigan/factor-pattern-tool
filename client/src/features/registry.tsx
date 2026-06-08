@@ -64,6 +64,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Draw a factor pattern and tune its rules live.",
     group: "create",
     icon: Pencil,
+    recordable: true,
     render: ({ pendingPreset, clearPending }) => (
       <StudioView
         externalPreset={pendingPreset}
@@ -77,6 +78,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Lift the pattern into space — a turtle that climbs.",
     group: "create",
     icon: Boxes,
+    recordable: true,
     render: () => <ThreeDView />,
   },
   {
@@ -85,6 +87,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Factor-driven ants & life — watch patterns interact.",
     group: "create",
     icon: Grid3x3,
+    recordable: true,
     render: () => <AutomataView />,
   },
   {
@@ -93,6 +96,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Hear the turn sequence as a melody.",
     group: "create",
     icon: Music,
+    recordable: true,
     render: () => <SonifyView />,
   },
   {
@@ -101,6 +105,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Same numbers, new views: chords & heatmaps.",
     group: "explore",
     icon: Aperture,
+    recordable: true,
     render: () => <LensesView />,
   },
   {
@@ -109,6 +114,7 @@ export const MODES: FeatureMode[] = [
     blurb: "Animate N and angle — watch patterns morph.",
     group: "explore",
     icon: Film,
+    recordable: true,
     render: () => <CinemaView />,
   },
   {

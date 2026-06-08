@@ -99,7 +99,7 @@ function RulePicker({ rulesetId, params, onChange }: RulePickerProps) {
   };
 
   return (
-    <div className="h-full w-full flex flex-col gap-5 overflow-y-auto p-1 text-foreground">
+    <div className="w-full flex flex-col gap-5 p-1 text-foreground">
       {/* Rule selector */}
       <div className="flex flex-col gap-2">
         <Label className="text-xs uppercase tracking-wide text-muted-foreground">

@@ -198,7 +198,7 @@ export default function ThreeDView() {
     <div className="relative h-full w-full overflow-hidden bg-[#0a0a0f] text-zinc-100">
       <Canvas
         key={radius.toFixed(1)}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, preserveDrawingBuffer: true }}
         camera={{ position: [camDist, camDist * 0.7, camDist], fov: 45, near: 0.1, far: radius * 40 }}
         dpr={[1, 2]}
       >

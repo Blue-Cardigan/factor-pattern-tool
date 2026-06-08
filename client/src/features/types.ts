@@ -31,6 +31,8 @@ export interface FeatureMode {
   blurb: string;
   group: ModeGroup;
   icon: LucideIcon;
+  /** Whether the global GIF recorder button should appear for this mode. */
+  recordable?: boolean;
   /** Render the mode. ctx is supplied by the shell. */
   render: (ctx: ModeRenderContext) => ReactNode;
 }

@@ -121,3 +121,114 @@ export async function encodePatternGif(result: PatternResult, opts: GifOptions =
   gif.finish();
   return new Blob([gif.bytes()], { type: "image/gif" });
 }
+
+/* --------------------------- generic live capture --------------------------- */
+
+export interface CaptureOptions {
+  /** Total seconds of animation to record. */
+  durationMs?: number;
+  fps?: number;
+  /** Longest output edge in px (aspect preserved). */
+  maxSize?: number;
+  background?: string;
+  onProgress?: (done: number, total: number) => void;
+}
+
+function fitSize(w: number, h: number, maxSize: number): [number, number] {
+  const ar = w > 0 && h > 0 ? w / h : 1;
+  let ow: number, oh: number;
+  if (w >= h) {
+    ow = Math.min(maxSize, Math.round(w));
+    oh = Math.round(ow / ar);
+  } else {
+    oh = Math.min(maxSize, Math.round(h));
+    ow = Math.round(oh * ar);
+  }
+  return [Math.max(2, ow), Math.max(2, oh)];
+}
+
+async function encodeFrames(
+  w: number,
+  h: number,
+  frames: number,
+  delay: number,
+  background: string,
+  paint: (ctx: CanvasRenderingContext2D) => void | Promise<void>,
+  onProgress?: (done: number, total: number) => void
+): Promise<Blob> {
+  const off = document.createElement("canvas");
+  off.width = w;
+  off.height = h;
+  const ctx = off.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("2D canvas unavailable");
+  const gif = GIFEncoder();
+  for (let f = 0; f < frames; f++) {
+    await new Promise((r) => setTimeout(r, delay)); // sample the live animation
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, w, h);
+    await paint(ctx);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    const palette = quantize(data, 256);
+    const index = applyPalette(data, palette);
+    gif.writeFrame(index, w, h, { palette, delay });
+    onProgress?.(f + 1, frames);
+  }
+  gif.finish();
+  return new Blob([gif.bytes()], { type: "image/gif" });
+}
+
+/** Record a live <canvas> (2D or WebGL w/ preserveDrawingBuffer) into a GIF. */
+export async function captureCanvasGif(
+  source: HTMLCanvasElement,
+  opts: CaptureOptions = {}
+): Promise<Blob> {
+  const durationMs = opts.durationMs ?? 2600;
+  const fps = opts.fps ?? 18;
+  const maxSize = opts.maxSize ?? 512;
+  const background = opts.background ?? "#000000";
+  const frames = Math.max(2, Math.round((durationMs / 1000) * fps));
+  const delay = Math.round(1000 / fps);
+  const [w, h] = fitSize(source.width || source.clientWidth, source.height || source.clientHeight, maxSize);
+  return encodeFrames(w, h, frames, delay, background, (ctx) => {
+    try {
+      ctx.drawImage(source, 0, 0, w, h);
+    } catch {
+      /* tainted/unavailable frame — leave background */
+    }
+  }, opts.onProgress);
+}
+
+/** Record a live <svg> (re-serialized each frame) into a GIF. */
+export async function captureSvgGif(svg: SVGSVGElement, opts: CaptureOptions = {}): Promise<Blob> {
+  const durationMs = opts.durationMs ?? 2600;
+  const fps = opts.fps ?? 12;
+  const maxSize = opts.maxSize ?? 512;
+  const background = opts.background ?? "#000000";
+  const frames = Math.max(2, Math.round((durationMs / 1000) * fps));
+  const delay = Math.round(1000 / fps);
+  const rect = svg.getBoundingClientRect();
+  const [w, h] = fitSize(rect.width, rect.height, maxSize);
+
+  const snapshot = (): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      clone.setAttribute("width", String(w));
+      clone.setAttribute("height", String(h));
+      const str = new XMLSerializer().serializeToString(clone);
+      const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(str);
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("svg snapshot failed"));
+      img.src = url;
+    });
+
+  return encodeFrames(w, h, frames, delay, background, async (ctx) => {
+    try {
+      const img = await snapshot();
+      ctx.drawImage(img, 0, 0, w, h);
+    } catch {
+      /* skip frame on snapshot failure */
+    }
+  }, opts.onProgress);
+}
