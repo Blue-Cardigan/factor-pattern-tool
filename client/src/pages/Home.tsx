@@ -9,13 +9,15 @@ import { PatternConfig, PatternResult, generatePattern, DEFAULT_CONFIG } from "@
 import PatternCanvas from "@/components/PatternCanvas";
 import ControlPanel from "@/components/ControlPanel";
 import { toast } from "sonner";
+import type { CanvasPreset } from "@/features/types";
+import { presetToPatternConfig } from "@/features/registry";
 
 interface HomeProps {
-  externalConfig?: Partial<PatternConfig> | null;
+  externalPreset?: CanvasPreset | null;
   onExternalConfigApplied?: () => void;
 }
 
-export default function Home({ externalConfig, onExternalConfigApplied }: HomeProps) {
+export default function Home({ externalPreset, onExternalConfigApplied }: HomeProps) {
   const [config, setConfig] = useState<PatternConfig>(DEFAULT_CONFIG);
   const [result, setResult] = useState<PatternResult>(() => generatePattern(DEFAULT_CONFIG));
   const [colorMode, setColorMode] = useState<"hue-cycle" | "factor-highlight" | "monochrome">("hue-cycle");
@@ -26,10 +28,10 @@ export default function Home({ externalConfig, onExternalConfigApplied }: HomePr
   const [animKey, setAnimKey] = useState(0);
   const svgContainerRef = useRef<HTMLDivElement>(null);
 
-  // Apply external config when pushed from Explorer
+  // Apply external preset when pushed from another mode
   useEffect(() => {
-    if (!externalConfig) return;
-    const newConfig = { ...config, ...externalConfig };
+    if (!externalPreset) return;
+    const newConfig = { ...config, ...presetToPatternConfig(externalPreset) };
     setConfig(newConfig);
     const r = generatePattern(newConfig);
     setResult(r);
@@ -38,11 +40,11 @@ export default function Home({ externalConfig, onExternalConfigApplied }: HomePr
     onExternalConfigApplied?.();
     if (r.isClosed) {
       toast.success(
-        `Loaded from Explorer — closes after ${r.closedAfterCycles} cycle${r.closedAfterCycles === 1 ? "" : "s"}.`,
+        `Loaded — closes after ${r.closedAfterCycles} cycle${r.closedAfterCycles === 1 ? "" : "s"}.`,
         { duration: 3000 }
       );
     }
-  }, [externalConfig]);
+  }, [externalPreset]);
 
   const handleConfigChange = useCallback((patch: Partial<PatternConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
