@@ -10,7 +10,7 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { Play, RotateCcw, Download } from "lucide-react";
+import { Play, RotateCcw, Download, Film, Loader2 } from "lucide-react";
 
 import RulePicker from "./RulePicker";
 import PatternCanvas from "@/components/PatternCanvas";
@@ -108,6 +108,7 @@ export default function StudioView({ externalPreset, onExternalConfigApplied }: 
   const [loopAnimation, setLoopAnimation] = useState(true);
   const [isAnimating, setIsAnimating] = useState(true);
   const [animKey, setAnimKey] = useState(0);
+  const [gifProgress, setGifProgress] = useState<number | null>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
 
   const result = useMemo(
@@ -179,6 +180,35 @@ export default function StudioView({ externalPreset, onExternalConfigApplied }: 
     URL.revokeObjectURL(url);
     toast.success("SVG exported!");
   }, [rulesetId, params.n]);
+
+  const handleExportGif = useCallback(async () => {
+    if (gifProgress !== null) return;
+    if (!result.segments.length) {
+      toast.error("Nothing to record yet");
+      return;
+    }
+    setGifProgress(0);
+    try {
+      const { encodePatternGif } = await import("@/lib/gif/recordPattern");
+      const blob = await encodePatternGif(result, {
+        size: 512,
+        colorMode,
+        strokeWidth: Math.max(1.5, strokeWidth * 1.4),
+        onProgress: (done, total) => setGifProgress(Math.round((done / total) * 100)),
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `factor-pattern-${rulesetId}-${params.n}.gif`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("GIF exported!");
+    } catch (e) {
+      toast.error(`GIF export failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setGifProgress(null);
+    }
+  }, [gifProgress, result, colorMode, strokeWidth, rulesetId, params.n]);
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
@@ -283,6 +313,24 @@ export default function StudioView({ externalPreset, onExternalConfigApplied }: 
               Export SVG
             </Button>
           </div>
+          <Button
+            variant="outline"
+            className="w-full gap-1.5 text-xs"
+            onClick={handleExportGif}
+            disabled={gifProgress !== null}
+          >
+            {gifProgress !== null ? (
+              <>
+                <Loader2 size={12} className="animate-spin" />
+                Encoding GIF… {gifProgress}%
+              </>
+            ) : (
+              <>
+                <Film size={12} />
+                Export GIF (loop)
+              </>
+            )}
+          </Button>
         </div>
       </aside>
 
