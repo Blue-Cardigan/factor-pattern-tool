@@ -146,7 +146,24 @@ export default function CinemaView() {
   /* ----------------------------- spec editing ----------------------------- */
 
   const setMode = (mode: CinemaMode) => {
-    setSpec((prev) => ({ ...prev, mode }));
+    setSpec((prev) => ({
+      ...prev,
+      mode,
+      // Ensure the target mode's block exists so its controls + the frame
+      // computation have values to read.
+      angle:
+        mode === "angle"
+          ? prev.angle ?? { angleAMin: 30, angleAMax: 150 }
+          : prev.angle,
+      bloom:
+        mode === "bloom"
+          ? prev.bloom ?? { nMin: 6, nMax: 60, crossfade: 0.35 }
+          : prev.bloom,
+      configB:
+        mode === "morph"
+          ? prev.configB ?? { ...prev.base, n: prev.base.n + 6 }
+          : prev.configB,
+    }));
   };
 
   const setBase = (patch: Partial<CinemaSpec["base"]>) =>

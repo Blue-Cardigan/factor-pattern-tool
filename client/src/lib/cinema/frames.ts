@@ -78,6 +78,10 @@ export interface ComputedFrame {
   blend: number;
 }
 
+/** Fallbacks used when a spec is switched to a mode whose block isn't set yet. */
+export const DEFAULT_ANGLE_SPEC: AngleSpec = { angleAMin: 30, angleAMax: 150 };
+export const DEFAULT_BLOOM_SPEC: BloomSpec = { nMin: 6, nMax: 60, crossfade: 0.35 };
+
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smoothstep = (t: number) => t * t * (3 - 2 * t);
@@ -105,7 +109,7 @@ function walk(values: FrameValues): TurtleResult {
 /* ----------------------------- per-mode values ----------------------------- */
 
 function angleValues(spec: CinemaSpec, t: number): FrameValues {
-  const a = spec.angle!;
+  const a = spec.angle ?? DEFAULT_ANGLE_SPEC;
   const b = spec.base;
   const angleA = lerp(a.angleAMin, a.angleAMax, t);
   const angleB =
@@ -126,7 +130,7 @@ function angleValues(spec: CinemaSpec, t: number): FrameValues {
  * `crossfade` fraction of a slot, blend toward the next integer's geometry.
  */
 function bloomFrame(spec: CinemaSpec, t: number): ComputedFrame {
-  const bl = spec.bloom!;
+  const bl = spec.bloom ?? DEFAULT_BLOOM_SPEC;
   const b = spec.base;
   const lo = capN(bl.nMin);
   const hi = capN(bl.nMax);
