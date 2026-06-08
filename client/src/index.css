@@ -1,0 +1,227 @@
+/*
+ * DESIGN PHILOSOPHY: Dark Generative Art Studio
+ * Movement: Contemporary creative coding tool (cables.gl / Shadertoy aesthetic)
+ * Core: Deep dark void background, vibrant hue-cycled lines, compact sidebar controls
+ * Colors: Charcoal bg (#111318), pure black canvas, electric violet accent (#7c3aed)
+ * Typography: IBM Plex Mono (numbers/code) + Outfit 600 (headings/labels)
+ * Layout: Full-viewport split — 320px fixed left sidebar + full canvas right
+ */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Dark studio palette */
+  --background: oklch(0.13 0.01 265);
+  --foreground: oklch(0.92 0.005 265);
+
+  --card: oklch(0.16 0.012 265);
+  --card-foreground: oklch(0.92 0.005 265);
+
+  --popover: oklch(0.16 0.012 265);
+  --popover-foreground: oklch(0.92 0.005 265);
+
+  /* Electric violet primary */
+  --primary: oklch(0.55 0.22 290);
+  --primary-foreground: oklch(0.98 0 0);
+
+  --secondary: oklch(0.2 0.01 265);
+  --secondary-foreground: oklch(0.78 0.01 265);
+
+  --muted: oklch(0.19 0.01 265);
+  --muted-foreground: oklch(0.55 0.015 265);
+
+  --accent: oklch(0.22 0.015 265);
+  --accent-foreground: oklch(0.92 0.005 265);
+
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.25 0.01 265);
+  --input: oklch(0.22 0.01 265);
+  --ring: oklch(0.55 0.22 290);
+
+  --chart-1: oklch(0.65 0.22 290);
+  --chart-2: oklch(0.65 0.2 200);
+  --chart-3: oklch(0.65 0.18 150);
+  --chart-4: oklch(0.65 0.2 50);
+  --chart-5: oklch(0.65 0.22 10);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Outfit', sans-serif;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+}
+
+/* Custom slider styling for dark theme */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  width: 100%;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: oklch(0.25 0.01 265);
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: oklch(0.55 0.22 290);
+  margin-top: -5px;
+  cursor: pointer;
+  transition: background 150ms ease-out, transform 150ms ease-out;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: oklch(0.65 0.22 290);
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-track {
+  background: oklch(0.25 0.01 265);
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: oklch(0.55 0.22 290);
+  border: none;
+  cursor: pointer;
+}
+
+/* Canvas glow effect */
+.canvas-glow {
+  filter: drop-shadow(0 0 8px oklch(0.55 0.22 290 / 0.3));
+}
+
+/* Animated path drawing */
+@keyframes drawPath {
+  from { stroke-dashoffset: var(--path-length, 10000); }
+  to   { stroke-dashoffset: 0; }
+}
+
+.path-animate {
+  animation: drawPath 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Sidebar entrance */
+@keyframes slideInLeft {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+.sidebar-enter {
+  animation: slideInLeft 0.35s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Pulse on generate */
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 oklch(0.55 0.22 290 / 0.4); }
+  70%  { box-shadow: 0 0 0 10px oklch(0.55 0.22 290 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.55 0.22 290 / 0); }
+}
+
+.btn-pulse {
+  animation: pulse-ring 0.6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-animate, .sidebar-enter, .btn-pulse {
+    animation: none;
+  }
+}
