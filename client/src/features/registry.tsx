@@ -7,18 +7,21 @@
  * and zero-prop where possible (they read core lib + ModeContext directly).
  */
 
+import { lazy } from "react";
 import { Pencil, Boxes, Grid3x3, Aperture, Film, Search, LibraryBig, Music } from "lucide-react";
 import type { FeatureMode, CanvasPreset } from "./types";
 import { useModeContext } from "./ModeContext";
 
-import Home from "@/pages/Home";
-import Explorer from "@/pages/Explorer";
-import ThreeDView from "./threed/ThreeDView";
-import AutomataView from "./automata/AutomataView";
-import SonifyView from "./sonify/SonifyView";
-import LensesView from "./lenses/LensesView";
-import CinemaView from "./cinema/CinemaView";
-import SearchView from "./search/SearchView";
+// Canvas is the default mode — keep it eager. Everything else (esp. the
+// three.js-heavy 3D view) is code-split so it only loads when first opened.
+import StudioView from "./studio/StudioView";
+const Explorer = lazy(() => import("@/pages/Explorer"));
+const ThreeDView = lazy(() => import("./threed/ThreeDView"));
+const AutomataView = lazy(() => import("./automata/AutomataView"));
+const SonifyView = lazy(() => import("./sonify/SonifyView"));
+const LensesView = lazy(() => import("./lenses/LensesView"));
+const CinemaView = lazy(() => import("./cinema/CinemaView"));
+const SearchView = lazy(() => import("./search/SearchView"));
 
 import type { PatternConfig } from "@/lib/patternEngine";
 
@@ -62,7 +65,7 @@ export const MODES: FeatureMode[] = [
     group: "create",
     icon: Pencil,
     render: ({ pendingPreset, clearPending }) => (
-      <Home
+      <StudioView
         externalPreset={pendingPreset}
         onExternalConfigApplied={clearPending}
       />

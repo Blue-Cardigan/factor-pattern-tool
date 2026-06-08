@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { MODES, DEFAULT_MODE_ID } from "./features/registry";
 import { ModeProvider } from "./features/ModeContext";
 import type { CanvasPreset, ModeGroup } from "./features/types";
@@ -104,7 +104,15 @@ function App() {
 
               {/* Active mode */}
               <main className="flex-1 h-full overflow-hidden">
-                {active.render({ pendingPreset, clearPending })}
+                <Suspense
+                  fallback={
+                    <div className="h-full w-full flex items-center justify-center text-muted-foreground font-mono text-sm">
+                      Loading {active.label}…
+                    </div>
+                  }
+                >
+                  {active.render({ pendingPreset, clearPending })}
+                </Suspense>
               </main>
             </div>
           </ModeProvider>
