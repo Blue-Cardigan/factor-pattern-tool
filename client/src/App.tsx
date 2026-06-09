@@ -14,8 +14,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useState, useCallback, useMemo, useRef, Suspense } from "react";
 import { MODES, DEFAULT_MODE_ID } from "./features/registry";
-import { ModeProvider, type GifProvider } from "./features/ModeContext";
-import GifRecorderButton from "./features/GifRecorderButton";
+import { ModeProvider, type RecordProvider } from "./features/ModeContext";
+import RecordButton from "./features/RecordButton";
 import type { CanvasPreset, ModeGroup } from "./features/types";
 
 const GROUP_LABELS: Record<ModeGroup, string> = {
@@ -36,14 +36,14 @@ function App() {
   const clearPending = useCallback(() => setPendingPreset(null), []);
 
   const mainRef = useRef<HTMLElement>(null);
-  const gifProviderRef = useRef<GifProvider | null>(null);
-  const setGifProvider = useCallback((p: GifProvider | null) => {
-    gifProviderRef.current = p;
+  const recordProviderRef = useRef<RecordProvider | null>(null);
+  const setRecordProvider = useCallback((p: RecordProvider | null) => {
+    recordProviderRef.current = p;
   }, []);
 
   const ctxValue = useMemo(
-    () => ({ loadIntoCanvas, goToMode, setGifProvider }),
-    [loadIntoCanvas, goToMode, setGifProvider]
+    () => ({ loadIntoCanvas, goToMode, setRecordProvider }),
+    [loadIntoCanvas, goToMode, setRecordProvider]
   );
 
   const groups = useMemo(() => {
@@ -124,7 +124,7 @@ function App() {
                   {active.render({ pendingPreset, clearPending })}
                 </Suspense>
                 {active.recordable && (
-                  <GifRecorderButton mainRef={mainRef} providerRef={gifProviderRef} />
+                  <RecordButton mainRef={mainRef} providerRef={recordProviderRef} />
                 )}
               </main>
             </div>

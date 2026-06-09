@@ -14,6 +14,7 @@ import { Play, RotateCcw, Download } from "lucide-react";
 
 import RulePicker from "./RulePicker";
 import { useModeContext } from "@/features/ModeContext";
+import { createPatternRenderer } from "@/lib/gif/frames";
 import PatternCanvas from "@/components/PatternCanvas";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -110,7 +111,7 @@ export default function StudioView({ externalPreset, onExternalConfigApplied }: 
   const [isAnimating, setIsAnimating] = useState(true);
   const [animKey, setAnimKey] = useState(0);
   const svgContainerRef = useRef<HTMLDivElement>(null);
-  const { setGifProvider } = useModeContext();
+  const { setRecordProvider } = useModeContext();
 
   const result = useMemo(
     () => toPatternResult(rulesetId, params, stepLength, repetitions),
@@ -182,22 +183,21 @@ export default function StudioView({ externalPreset, onExternalConfigApplied }: 
     toast.success("SVG exported!");
   }, [rulesetId, params.n]);
 
-  // Register a deterministic GIF provider for the global recorder button:
+  // Register a deterministic frame source for the global recorder button:
   // replays the draw-loop from the pattern data rather than screen-grabbing the
-  // CSS-animated SVG (which can't be sampled mid-transition).
+  // CSS-animated SVG (which can't be sampled mid-transition). The recorder turns
+  // it into a GIF or MP4 on demand.
   useEffect(() => {
-    setGifProvider(async (onProgress) => {
-      const { encodePatternGif } = await import("@/lib/gif/recordPattern");
-      const blob = await encodePatternGif(result, {
+    setRecordProvider(() => ({
+      renderer: createPatternRenderer(result, {
         size: 512,
         colorMode,
         strokeWidth: Math.max(1.5, strokeWidth * 1.4),
-        onProgress,
-      });
-      return { blob, filename: `factor-pattern-${rulesetId}-${params.n}.gif` };
-    });
-    return () => setGifProvider(null);
-  }, [setGifProvider, result, colorMode, strokeWidth, rulesetId, params.n]);
+      }),
+      baseName: `factor-pattern-${rulesetId}-${params.n}`,
+    }));
+    return () => setRecordProvider(null);
+  }, [setRecordProvider, result, colorMode, strokeWidth, rulesetId, params.n]);
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
